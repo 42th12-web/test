@@ -1,18 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ReferenceLine,
-  ReferenceDot,
-} from "recharts";
+import { SimpleLineChart, ChartLegend } from "@/components/SimpleChart";
 import ControlSlider from "@/components/ControlSlider";
 import StatCard from "@/components/StatCard";
 import {
@@ -34,17 +23,10 @@ function ChartPanel({ title, children }) {
   return (
     <div className="border border-graphite-700 bg-graphite-900/40 p-4">
       <div className="text-[13px] text-ink-300 mb-3">{title}</div>
-      <div style={{ width: "100%", height: 260 }}>{children}</div>
+      {children}
     </div>
   );
 }
-
-const tooltipStyle = {
-  backgroundColor: "#1c2124",
-  border: "1px solid #333a3f",
-  fontSize: 12,
-  fontFamily: "var(--font-mono)",
-};
 
 export default function Page() {
   const [Q_Lmin, setQ] = useState(15);
@@ -234,88 +216,57 @@ export default function Page() {
           {/* Charts */}
           <div className="flex flex-col gap-6">
             <ChartPanel title="전류밀도(J)별 운영비용 · 제거율">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={costCurve} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid stroke="#252b2f" strokeDasharray="2 4" />
-                  <XAxis
-                    dataKey="J"
-                    stroke="#8b9198"
-                    fontSize={11}
-                    label={{ value: "J (A/m²)", position: "insideBottom", offset: -2, fill: "#8b9198", fontSize: 11 }}
-                  />
-                  <YAxis
-                    yAxisId="cost"
-                    stroke="#d9a441"
-                    fontSize={11}
-                    label={{ value: "원/h", angle: -90, position: "insideLeft", fill: "#d9a441", fontSize: 11 }}
-                  />
-                  <YAxis
-                    yAxisId="removal"
-                    orientation="right"
-                    stroke="#4fa184"
-                    fontSize={11}
-                    domain={[0, 100]}
-                    label={{ value: "제거율 %", angle: 90, position: "insideRight", fill: "#4fa184", fontSize: 11 }}
-                  />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line yAxisId="cost" type="monotone" dataKey="cost" name="비용(원/h)" stroke="#d9a441" dot={false} strokeWidth={2} />
-                  <Line yAxisId="removal" type="monotone" dataKey="removal" name="제거율(%)" stroke="#4fa184" dot={false} strokeWidth={2} />
-                  <ReferenceDot
-                    yAxisId="cost"
-                    x={Number(optimization.J.toFixed(1))}
-                    y={Number(optimization.result.cost.toFixed(1))}
-                    r={5}
-                    fill="#c1591b"
-                    stroke="none"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <div style={{ width: "100%", height: 260 }}>
+                <SimpleLineChart
+                  data={costCurve}
+                  xKey="J"
+                  xFormat={(v) => `${v}`}
+                  series={[
+                    { key: "cost", color: "#d9a441", axis: "left" },
+                    { key: "removal", color: "#4fa184", axis: "right", domain: [0, 100] },
+                  ]}
+                  referenceDots={[
+                    {
+                      x: Number(optimization.J.toFixed(1)),
+                      y: Number(optimization.result.cost.toFixed(1)),
+                      axis: "left",
+                      color: "#c1591b",
+                    },
+                  ]}
+                />
+              </div>
+              <ChartLegend
+                items={[
+                  { name: "비용(원/h)", color: "#d9a441" },
+                  { name: "제거율(%)", color: "#4fa184" },
+                ]}
+              />
             </ChartPanel>
 
             <ChartPanel title="시간에 따른 전압 파형 (역극성 전환 톱니형)">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dynamic.series} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid stroke="#252b2f" strokeDasharray="2 4" />
-                  <XAxis
-                    dataKey="t"
-                    stroke="#8b9198"
-                    fontSize={11}
-                    label={{ value: "시간 (h)", position: "insideBottom", offset: -2, fill: "#8b9198", fontSize: 11 }}
-                  />
-                  <YAxis
-                    stroke="#3aafa9"
-                    fontSize={11}
-                    label={{ value: "전압 (V)", angle: -90, position: "insideLeft", fill: "#3aafa9", fontSize: 11 }}
-                  />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <ReferenceLine y={vThreshold} stroke="#c1591b" strokeDasharray="4 4" label={{ value: "임계값", fill: "#c1591b", fontSize: 11 }} />
-                  <Line type="monotone" dataKey="V" name="전압(V)" stroke="#3aafa9" dot={false} strokeWidth={1.5} />
-                </LineChart>
-              </ResponsiveContainer>
+              <div style={{ width: "100%", height: 260 }}>
+                <SimpleLineChart
+                  data={dynamic.series}
+                  xKey="t"
+                  xFormat={(v) => `${v}`}
+                  series={[{ key: "V", color: "#3aafa9", axis: "left" }]}
+                  referenceLines={[{ axis: "left", value: vThreshold, color: "#c1591b", label: "임계값" }]}
+                />
+              </div>
+              <ChartLegend items={[{ name: "전압(V)", color: "#3aafa9" }]} />
             </ChartPanel>
 
             <ChartPanel title="전극 잔존 질량 추이">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dynamic.series} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid stroke="#252b2f" strokeDasharray="2 4" />
-                  <XAxis
-                    dataKey="t"
-                    stroke="#8b9198"
-                    fontSize={11}
-                    label={{ value: "시간 (h)", position: "insideBottom", offset: -2, fill: "#8b9198", fontSize: 11 }}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    stroke="#4fa184"
-                    fontSize={11}
-                    label={{ value: "잔존 질량 %", angle: -90, position: "insideLeft", fill: "#4fa184", fontSize: 11 }}
-                  />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <ReferenceLine y={20} stroke="#c1591b" strokeDasharray="4 4" label={{ value: "교체 알람 (20%)", fill: "#c1591b", fontSize: 11 }} />
-                  <Line type="monotone" dataKey="remainingPct" name="잔존질량(%)" stroke="#4fa184" dot={false} strokeWidth={1.5} />
-                </LineChart>
-              </ResponsiveContainer>
+              <div style={{ width: "100%", height: 260 }}>
+                <SimpleLineChart
+                  data={dynamic.series}
+                  xKey="t"
+                  xFormat={(v) => `${v}`}
+                  series={[{ key: "remainingPct", color: "#4fa184", axis: "left", domain: [0, 100] }]}
+                  referenceLines={[{ axis: "left", value: 20, color: "#c1591b", label: "교체 알람 (20%)" }]}
+                />
+              </div>
+              <ChartLegend items={[{ name: "잔존질량(%)", color: "#4fa184" }]} />
             </ChartPanel>
           </div>
         </div>
