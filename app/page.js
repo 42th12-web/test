@@ -34,7 +34,7 @@ function ChartPanel({ title, children }) {
   return (
     <div className="border border-graphite-700 bg-graphite-900/40 p-4">
       <div className="text-[13px] text-ink-300 mb-3">{title}</div>
-      <div className="h-64">{children}</div>
+      <div style={{ width: "100%", height: 260 }}>{children}</div>
     </div>
   );
 }
