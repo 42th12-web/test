@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SimpleLineChart, ChartLegend } from "@/components/SimpleChart";
+import ElectrodeDiagram from "@/components/ElectrodeDiagram";
 import ControlSlider from "@/components/ControlSlider";
 import StatCard from "@/components/StatCard";
 import {
@@ -38,6 +39,8 @@ export default function Page() {
   const [initialMassKg, setInitialMassKg] = useState(5);
   const [kPass, setKPass] = useState(0.012);
   const [vThreshold, setVThreshold] = useState(8);
+  const [simT, setSimT] = useState(0);
+  const [playing, setPlaying] = useState(false);
 
   const params = useMemo(
     () => ({
@@ -63,6 +66,16 @@ export default function Page() {
     () => buildCostCurve(params, Math.max(30, optimization.J * 1.8)),
     [params, optimization.J]
   );
+
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => {
+      setSimT((prev) => (prev >= 720 ? 0 : prev + 6));
+    }, 120);
+    return () => clearInterval(id);
+  }, [playing]);
+
+  const simPoint = dynamic.series[Math.min(simT, dynamic.series.length - 1)];
 
   const replacementLabel =
     dynamic.alarmTime === null ? "720h 이내 미도달" : `${dynamic.alarmTime}h 시점`;
@@ -104,6 +117,39 @@ export default function Page() {
             accent="rust"
             sub="잔존량 20% 도달 시점"
           />
+        </div>
+
+        <div className="border border-graphite-700 bg-graphite-900/40 p-4 mb-6">
+          <div className="text-[13px] text-ink-300 mb-3">전극 실시간 시뮬레이션</div>
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={() => setPlaying((p) => !p)}
+              className="px-3 py-1.5 text-[12px] border border-graphite-600 text-ink-300 hover:border-patina-500"
+            >
+              {playing ? "일시정지" : "재생"}
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={720}
+              step={1}
+              value={simT}
+              onChange={(e) => {
+                setPlaying(false);
+                setSimT(Number(e.target.value));
+              }}
+              className="flex-1"
+            />
+            <span className="text-[12px] text-ink-500 w-14 text-right">{simT}h</span>
+          </div>
+          <div style={{ width: "100%", height: 360 }}>
+            <ElectrodeDiagram
+              remainingPct={simPoint.remainingPct}
+              polarity={simPoint.polarity}
+              J={optimization.J}
+              materialLabel={material}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
