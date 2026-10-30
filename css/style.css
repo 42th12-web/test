@@ -36,6 +36,9 @@
 
 * { box-sizing: border-box; }
 
+/* display를 지정한 요소도 hidden 속성이 있으면 확실히 숨긴다 */
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {

@@ -1,4 +1,7 @@
-// app.js — 앱 시작점. 하단 탭 전환을 담당한다.
+// app.js — 앱 시작점. 하단 탭 전환과 초기화를 담당한다.
+
+import { loadGraph } from './graph.js';
+import { initMeasure } from './measure.js';
 
 const tabs = document.querySelectorAll('.tab');
 
@@ -11,3 +14,5 @@ function showTab(name) {
 }
 
 tabs.forEach((tab) => tab.addEventListener('click', () => showTab(tab.dataset.tab)));
+
+initMeasure(await loadGraph());
