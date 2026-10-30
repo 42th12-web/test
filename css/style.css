@@ -1,0 +1,350 @@
+/* 색은 모두 여기서 정의한다. 야외에서 읽기 쉽도록 대비를 높게 잡았다. */
+:root {
+  --bg: #f3f5f1;
+  --surface: #ffffff;
+  --ink: #18201c;
+  --muted: #55605a;
+  --line: #d9dfd9;
+  --accent: #0b6e4f;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcefe7;
+  --warn: #9a4a10;
+  --warn-soft: #fbeedd;
+  --danger: #b42b22;
+  --chart-line: #0b6e4f;
+  --chart-limit: #b42b22;
+  --tabbar-height: 60px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111513;
+    --surface: #1b211e;
+    --ink: #eef2ef;
+    --muted: #a5b0aa;
+    --line: #313a35;
+    --accent: #3fbf94;
+    --accent-ink: #08140f;
+    --accent-soft: #1d3a2f;
+    --warn: #f0b070;
+    --warn-soft: #3a2a18;
+    --danger: #f08479;
+    --chart-line: #3fbf94;
+    --chart-limit: #f08479;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge.is-on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: calc(var(--tabbar-height) + 24px + env(safe-area-inset-bottom));
+}
+
+.card {
+  margin-bottom: 12px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.hint:last-child { margin-bottom: 0; }
+
+.msg {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.msg:empty { display: none; }
+.msg.is-ok { color: var(--accent); }
+.msg.is-error { color: var(--danger); }
+
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn-large {
+  min-height: 72px;
+  font-size: 20px;
+}
+
+.btn-quiet {
+  min-height: 44px;
+  margin-top: 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 측정 중에는 '종료' 버튼임을 색으로 분명히 보여 준다 */
+.btn.is-recording {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.field {
+  display: block;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
+
+.field > span,
+.field > legend {
+  display: block;
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+select,
+input[type="number"] {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+}
+
+.segmented span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.segmented input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.live-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+
+.live-stats .label,
+.metric .label {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.live-stats strong {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.live-chart {
+  display: block;
+  width: 100%;
+  height: 140px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.metric {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.metric strong {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric small {
+  margin-left: 2px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.warnings {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.warnings:empty { display: none; }
+
+.warnings li {
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tabbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.tab {
+  height: var(--tabbar-height);
+  border: 0;
+  border-top: 3px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab.is-active {
+  border-top-color: var(--accent);
+  color: var(--accent);
+}
