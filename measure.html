@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b6e4f">
+  <title>바퀴길 측정 도구</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%230b6e4f' stroke-width='5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%230b6e4f'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>바퀴길 측정 도구</h1>
+    <span id="sensorBadge" class="badge">센서 꺼짐</span>
+  </header>
+
+  <main>
+    <!-- 지도·측정값 데이터를 만드는 사람을 위한 페이지. 일반 사용자 화면에는 연결하지 않는다. -->
+    <div class="two-col">
+      <div class="card">
+        <h2><span class="step">1</span>센서 켜기</h2>
+        <p class="hint">측정은 움직임 센서가 있는 휴대폰에서 합니다. 네 바퀴 캐리어나 손수레에 휴대폰을 테이프로 단단히 붙이세요. 화면은 위로, 화면 위쪽은 앞으로 향하게 합니다.</p>
+        <button id="enableBtn" class="btn btn-primary" type="button">센서 켜기</button>
+        <button id="demoBtn" class="btn btn-quiet" type="button">센서 없이 체험하기</button>
+        <p id="sensorMsg" class="msg" role="status"></p>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">2</span>구간 선택</h2>
+        <label class="field">
+          <span>측정할 구간</span>
+          <select id="edgeSelect"></select>
+        </label>
+        <label class="field" id="lengthField">
+          <span>구간 길이 (m, 모르면 비워 두세요)</span>
+          <input id="lengthInput" type="number" inputmode="decimal" min="1" step="1" placeholder="예: 30">
+        </label>
+        <fieldset class="field" id="directionField">
+          <legend>미는 방향</legend>
+          <div class="segmented">
+            <label><input type="radio" name="direction" value="forward" checked><span id="forwardLabel">정방향</span></label>
+            <label><input type="radio" name="direction" value="reverse"><span id="reverseLabel">역방향</span></label>
+          </div>
+        </fieldset>
+        <p id="countInfo" class="hint"></p>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">3</span>평지에서 보정</h2>
+        <p class="hint">평평한 곳에 세우고 버튼을 누른 뒤 손을 떼세요. 3초 동안 움직이면 안 됩니다.</p>
+        <button id="calibrateBtn" class="btn" type="button" disabled>보정하기</button>
+        <p id="calibrateMsg" class="msg" role="status"></p>
+      </div>
+
+      <div class="card">
+        <h2><span class="step">4</span>측정</h2>
+        <p class="hint">시작을 누르고 일정한 걸음 속도로 미세요. 처음과 끝의 2초는 계산에서 빠지니 측정은 6초 이상 해 주세요.</p>
+        <button id="recordBtn" class="btn btn-primary btn-large" type="button" disabled>측정 시작</button>
+        <p id="recordMsg" class="msg is-error" role="status"></p>
+        <div class="live-stats">
+          <div><span class="label">경과 시간</span><strong id="elapsedText">0.0초</strong></div>
+          <div><span class="label">샘플링</span><strong id="rateText">— Hz</strong></div>
+        </div>
+        <canvas id="liveChart" class="live-chart" aria-label="최근 5초 진동 그래프"></canvas>
+      </div>
+
+      <div class="card result" id="resultCard" hidden>
+        <h2>측정 결과</h2>
+        <div id="metrics" class="metrics"></div>
+        <ul id="warnings" class="warnings"></ul>
+        <div class="btn-row">
+          <button id="saveBtn" class="btn btn-primary" type="button">저장</button>
+          <button id="retryBtn" class="btn" type="button">다시 측정</button>
+        </div>
+        <button id="rawBtn" class="btn btn-quiet" type="button">원시 데이터 내려받기</button>
+      </div>
+      <div class="card">
+        <h2>저장된 측정</h2>
+        <p id="savedCount" class="hint">저장된 측정이 없습니다.</p>
+        <div class="btn-row">
+          <button id="exportBtn" class="btn" type="button">JSON 내보내기</button>
+          <button id="importBtn" class="btn" type="button">JSON 가져오기</button>
+        </div>
+        <input id="importInput" type="file" accept=".json,application/json" hidden>
+        <p id="importMsg" class="msg" role="status"></p>
+      </div>
+      <div class="card">
+        <p class="hint">내보낸 파일을 data/measurements.json으로 교체하면 길찾기에 반영됩니다. 휴대폰에서 내보낸 파일을 노트북에서 가져와 합칠 수도 있습니다.</p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { loadGraph } from './js/graph.js';
+    import { initMeasure } from './js/measure.js';
+
+    initMeasure(await loadGraph());
+  </script>
+</body>
+</html>

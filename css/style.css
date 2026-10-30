@@ -13,6 +13,14 @@
   --danger: #b42b22;
   --chart-line: #0b6e4f;
   --chart-limit: #b42b22;
+  --map-base: #9aa5a0;
+  --route-best: #1565c0;
+  --route-short: #30363a;
+  --surface-good: #2e9e5b;
+  --surface-fair: #e0a800;
+  --surface-poor: #d9480f;
+  --surface-unmeasured: #9aa5a0;
+  --surface-blocked: #b42b22;
   --tabbar-height: 60px;
 }
 
@@ -31,6 +39,10 @@
     --danger: #f08479;
     --chart-line: #3fbf94;
     --chart-limit: #f08479;
+    --map-base: #7f8a85;
+    --route-best: #4dabf7;
+    --route-short: #eef2ef;
+    --surface-blocked: #f08479;
   }
 }
 
@@ -330,7 +342,7 @@ input[type="number"] {
   left: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--surface);
   border-top: 1px solid var(--line);
@@ -350,6 +362,115 @@ input[type="number"] {
 .tab.is-active {
   border-top-color: var(--accent);
   color: var(--accent);
+}
+
+.segmented-3 { grid-template-columns: repeat(3, 1fr); }
+
+.route-summary {
+  margin: 0;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.route-summary:empty { display: none; }
+
+.msg.is-warn { color: var(--warn); }
+
+.map-card { padding: 8px; }
+.map-card h2 { margin: 8px; }
+.map-card h2 small {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.map {
+  z-index: 0;   /* 지도 내부의 높은 z-index가 탭 위로 올라오지 않게 가둔다 */
+  height: 46vh;
+  min-height: 280px;
+  border-radius: 8px;
+}
+
+.node-label {
+  padding: 1px 5px;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.node-label::before { display: none; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 8px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 13px;
+  list-style: none;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 22px;
+  height: 5px;
+  border-radius: 3px;
+}
+
+.swatch-best { background: var(--route-best); }
+.swatch-short { background: repeating-linear-gradient(90deg, var(--route-short) 0 5px, transparent 5px 9px); }
+.swatch-blocked { background: repeating-linear-gradient(90deg, var(--surface-blocked) 0 6px, transparent 6px 10px); }
+
+.compare,
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare th,
+.compare td,
+.data-table th,
+.data-table td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.compare tbody th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.compare td:last-child,
+.compare thead th:last-child {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.table-scroll { overflow-x: auto; }
+
+.data-table {
+  min-width: 520px;
+  font-size: 14px;
+}
+
+.data-table th {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 /* 노트북처럼 넓은 화면: 탭을 상단으로 옮기고 카드를 두 줄로 놓는다 */
@@ -384,14 +505,28 @@ input[type="number"] {
     padding: 24px;
   }
 
-  .tab-panel {
+  .two-col {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     align-items: start;
   }
 
-  .card { margin-bottom: 0; }
+  .two-col .card { margin-bottom: 0; }
+
+  .route-layout:not([hidden]) {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .route-layout .map-card {
+    position: sticky;
+    top: 76px;
+  }
+
+  .map { height: 62vh; }
 
   .result { grid-column: 1 / -1; }
 
