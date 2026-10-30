@@ -351,3 +351,49 @@ input[type="number"] {
   border-top-color: var(--accent);
   color: var(--accent);
 }
+
+/* 노트북처럼 넓은 화면: 탭을 상단으로 옮기고 카드를 두 줄로 놓는다 */
+@media (min-width: 800px) {
+  .topbar {
+    gap: 32px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .tabbar {
+    position: static;
+    display: flex;
+    flex: 1;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .tab {
+    height: 40px;
+    padding: 0 18px;
+    border-top: 0;
+    border-bottom: 3px solid transparent;
+  }
+
+  .tab.is-active { border-bottom-color: var(--accent); }
+
+  main {
+    max-width: 960px;
+    padding: 24px;
+  }
+
+  .tab-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .card { margin-bottom: 0; }
+
+  .result { grid-column: 1 / -1; }
+
+  .metrics { grid-template-columns: repeat(3, 1fr); }
+}

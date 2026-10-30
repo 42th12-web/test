@@ -11,6 +11,12 @@
 <body>
   <header class="topbar">
     <h1>바퀴길</h1>
+    <!-- 휴대폰에서는 화면 아래에 고정되고, 넓은 화면에서는 상단에 놓인다 -->
+    <nav class="tabbar" aria-label="화면 전환">
+      <button class="tab is-active" type="button" data-tab="measure">측정</button>
+      <button class="tab" type="button" data-tab="route">길찾기</button>
+      <button class="tab" type="button" data-tab="data">데이터</button>
+    </nav>
     <span id="sensorBadge" class="badge">센서 꺼짐</span>
   </header>
 
@@ -19,8 +25,9 @@
     <section id="tab-measure" class="tab-panel" aria-label="측정">
       <div class="card">
         <h2><span class="step">1</span>센서 켜기</h2>
-        <p class="hint">네 바퀴 캐리어나 손수레에 휴대폰을 테이프로 단단히 붙이세요. 화면은 위로, 화면 위쪽은 앞으로 향하게 합니다.</p>
+        <p class="hint">측정은 움직임 센서가 있는 휴대폰에서 합니다. 네 바퀴 캐리어나 손수레에 휴대폰을 테이프로 단단히 붙이세요. 화면은 위로, 화면 위쪽은 앞으로 향하게 합니다.</p>
         <button id="enableBtn" class="btn btn-primary" type="button">센서 켜기</button>
+        <button id="demoBtn" class="btn btn-quiet" type="button">센서 없이 체험하기</button>
         <p id="sensorMsg" class="msg" role="status"></p>
       </div>
 
@@ -88,19 +95,18 @@
       <div class="card">
         <h2>저장된 측정</h2>
         <p id="savedCount" class="hint">저장된 측정이 없습니다.</p>
-        <button id="exportBtn" class="btn" type="button">JSON 내보내기</button>
+        <div class="btn-row">
+          <button id="exportBtn" class="btn" type="button">JSON 내보내기</button>
+          <button id="importBtn" class="btn" type="button">JSON 가져오기</button>
+        </div>
+        <input id="importInput" type="file" accept=".json,application/json" hidden>
+        <p id="importMsg" class="msg" role="status"></p>
       </div>
       <div class="card">
-        <p class="hint">노면 지도, 구간별 표, 가져오기와 설정은 다음 단계에서 추가합니다.</p>
+        <p class="hint">휴대폰에서 내보낸 파일을 노트북에서 가져오면 같은 데이터를 볼 수 있습니다. 노면 지도, 구간별 표와 설정은 다음 단계에서 추가합니다.</p>
       </div>
     </section>
   </main>
-
-  <nav class="tabbar" aria-label="화면 전환">
-    <button class="tab is-active" type="button" data-tab="measure">측정</button>
-    <button class="tab" type="button" data-tab="route">길찾기</button>
-    <button class="tab" type="button" data-tab="data">데이터</button>
-  </nav>
 
   <script type="module" src="js/app.js"></script>
 </body>

@@ -190,6 +190,26 @@ export function listenToMotion(onSample) {
   return () => window.removeEventListener('devicemotion', handler);
 }
 
+// 체험 모드: 센서가 없는 노트북에서도 측정 화면을 보여 주기 위한 가짜 신호.
+// 3% 오르막을 진동과 함께 지나가고 3초마다 턱을 하나 넘는다. isMoving()이 거짓이면 정지 상태다.
+export function startSimulatedMotion(onSample, isMoving) {
+  const GRAVITY = 9.81;
+  const timer = setInterval(() => {
+    const t = performance.now() / 1000;
+    const moving = isMoving();
+    const angle = moving ? Math.atan(0.03) : 0;
+    const shake = moving ? 1.2 * Math.sin(2 * Math.PI * 11 * t) + 0.3 * (Math.random() - 0.5) : 0;
+    const bump = moving && t % 3 < 0.03 ? 6 : 0;
+    onSample({
+      t,
+      x: 0,
+      y: GRAVITY * Math.sin(angle),
+      z: GRAVITY * Math.cos(angle) + shake + bump,
+    });
+  }, 1000 / 60);
+  return () => clearInterval(timer);
+}
+
 // 측정 중 화면이 꺼지지 않게 한다. 지원하지 않으면 null을 돌려준다.
 export async function requestWakeLock() {
   if (!('wakeLock' in navigator)) return null;

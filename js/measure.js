@@ -2,9 +2,11 @@
 
 import {
   SIGNAL, analyzeSamples, computeCalibration, estimateSampleRate,
-  listenToMotion, requestMotionPermission, requestWakeLock,
+  listenToMotion, requestMotionPermission, requestWakeLock, startSimulatedMotion,
 } from './sensor.js';
-import { addMeasurement, downloadJson, loadMeasurements, measurementsFor } from './storage.js';
+import {
+  addMeasurement, downloadJson, importMeasurements, loadMeasurements, measurementsFor,
+} from './storage.js';
 
 const TEST_EDGE_ID = 'test';      // 지도에 없는 아무 길을 시험 측정할 때 쓰는 구간
 const RECOMMENDED_RUNS = 3;       // 구간별 권장 측정 횟수
@@ -18,6 +20,7 @@ const el = (id) => document.getElementById(id);
 const state = {
   graph: null,
   isListening: false,
+  isDemo: false,      // 체험 모드면 결과를 저장하지 않는다
   calibration: null,
   isCalibrating: false,
   isRecording: false,
@@ -83,7 +86,7 @@ function updateCountInfo() {
 async function enableSensor() {
   const permission = await requestMotionPermission();
   if (permission === 'unsupported') {
-    setMessage('sensorMsg', '이 브라우저는 움직임 센서를 지원하지 않습니다.', 'error');
+    showNoSensor();
     return;
   }
 
@@ -96,11 +99,20 @@ async function enableSensor() {
   }
   setTimeout(() => {
     if (state.latest) return;
-    const message = permission === 'granted'
-      ? '센서 값이 들어오지 않습니다. 휴대폰 브라우저에서 열었는지 확인해 주세요.'
-      : '센서 권한이 거부되었습니다. 브라우저를 다시 열고 허용해 주세요.';
-    setMessage('sensorMsg', message, 'error');
+    if (permission === 'granted') showNoSensor();
+    else setMessage('sensorMsg', '센서 권한이 거부되었습니다. 브라우저를 다시 열고 허용해 주세요.', 'error');
   }, SENSOR_TIMEOUT_MS);
+}
+
+// 노트북처럼 센서가 없는 기기는 오류가 아니므로 쓸 수 있는 방법을 안내한다.
+function showNoSensor() {
+  setMessage('sensorMsg', '이 기기에서는 움직임 센서를 찾지 못했습니다. 측정은 휴대폰에서 하고, 여기서는 체험 모드를 쓰거나 데이터 탭에서 측정 파일을 가져올 수 있습니다.');
+  el('sensorBadge').textContent = '센서 없음';
+}
+
+function startDemo() {
+  state.isDemo = true;
+  startSimulatedMotion(handleSample, () => state.isRecording);
 }
 
 function handleSample(sample) {
@@ -114,11 +126,12 @@ function handleSample(sample) {
 }
 
 function onFirstSample() {
-  setMessage('sensorMsg', '센서가 켜졌습니다.', 'ok');
+  setMessage('sensorMsg', state.isDemo ? '체험 모드입니다. 가짜 신호라서 결과는 저장되지 않습니다.' : '센서가 켜졌습니다.', 'ok');
   el('enableBtn').disabled = true;
+  el('demoBtn').hidden = true;
   el('calibrateBtn').disabled = false;
   const badge = el('sensorBadge');
-  badge.textContent = '센서 켜짐';
+  badge.textContent = state.isDemo ? '체험 모드' : '센서 켜짐';
   badge.classList.add('is-on');
 }
 
@@ -178,10 +191,12 @@ async function startRecording() {
   button.textContent = '측정 종료';
   button.classList.add('is-recording');
   el('calibrateBtn').disabled = true;
+  requestAnimationFrame(renderLive);   // 화면 켜짐 요청을 기다리지 않고 그래프부터 시작한다
 
   state.wakeLock = await requestWakeLock();
-  el('recordMsg').textContent = state.wakeLock ? '' : '화면 켜짐 유지를 쓸 수 없습니다. 측정 중 화면이 꺼지지 않게 주의해 주세요.';
-  requestAnimationFrame(renderLive);
+  el('recordMsg').textContent = state.wakeLock || state.isDemo
+    ? ''
+    : '화면 켜짐 유지를 쓸 수 없습니다. 측정 중 화면이 꺼지지 않게 주의해 주세요.';
 }
 
 async function stopRecording() {
@@ -281,6 +296,7 @@ function metricHtml(label, value, unit = '') {
 
 function buildWarnings(analysis, edge) {
   const warnings = [];
+  if (state.isDemo) warnings.push('체험 모드의 가짜 신호로 계산한 값이라 저장되지 않습니다.');
   if (analysis.hasGap) warnings.push('측정 중 센서가 끊겼습니다. 화면이 꺼지지 않게 하고 다시 측정해 주세요.');
   if (analysis.avgSpeed) {
     const previous = measurementsFor(edge.id, selectedDirection()).filter((m) => m.avgSpeed);
@@ -299,7 +315,8 @@ function showResult(analysis, edge) {
   card.hidden = false;
   const warningList = el('warnings');
   const isUsable = !analysis.tooShort;
-  el('saveBtn').disabled = !isUsable;
+  el('saveBtn').disabled = !isUsable || state.isDemo;
+  el('rawBtn').hidden = state.isDemo;
 
   if (analysis.tooShort) {
     el('metrics').innerHTML = metricHtml('측정 시간', analysis.durationSec, '초');
@@ -367,12 +384,27 @@ function exportRaw() {
   });
 }
 
-// ---------- 데이터 탭의 저장 개수와 내보내기 ----------
+// ---------- 데이터 탭의 저장 개수, 내보내기와 가져오기 ----------
 
 function updateSavedCount() {
   const count = loadMeasurements().length;
   el('savedCount').textContent = count > 0 ? `저장된 측정 ${count}개` : '저장된 측정이 없습니다.';
   el('exportBtn').disabled = count === 0;
+}
+
+// 휴대폰에서 내보낸 파일을 노트북 등 다른 기기로 옮겨 올 때 쓴다.
+async function importFile(event) {
+  const [file] = event.target.files;
+  event.target.value = '';   // 같은 파일을 다시 골라도 동작하도록 비운다
+  if (!file) return;
+  try {
+    const { added, duplicates } = importMeasurements(JSON.parse(await file.text()));
+    setMessage('importMsg', `${added}개를 가져왔습니다. (이미 있는 ${duplicates}개 제외)`, 'ok');
+  } catch {
+    setMessage('importMsg', '측정 데이터 파일이 아닙니다. 이 앱에서 내보낸 JSON 파일을 골라 주세요.', 'error');
+  }
+  updateCountInfo();
+  updateSavedCount();
 }
 
 export function initMeasure(graph) {
@@ -382,6 +414,7 @@ export function initMeasure(graph) {
   updateSavedCount();
 
   el('enableBtn').addEventListener('click', enableSensor);
+  el('demoBtn').addEventListener('click', startDemo);
   el('edgeSelect').addEventListener('change', updateEdgeFields);
   document.querySelectorAll('input[name="direction"]').forEach((radio) => {
     radio.addEventListener('change', updateCountInfo);
@@ -392,5 +425,7 @@ export function initMeasure(graph) {
   el('retryBtn').addEventListener('click', () => { el('resultCard').hidden = true; });
   el('rawBtn').addEventListener('click', exportRaw);
   el('exportBtn').addEventListener('click', () => downloadJson('measurements.json', loadMeasurements()));
+  el('importBtn').addEventListener('click', () => el('importInput').click());
+  el('importInput').addEventListener('change', importFile);
   document.addEventListener('visibilitychange', reacquireWakeLock);
 }
